@@ -1,6 +1,7 @@
 <?php
-$pageTitle  = 'Reservas';
-$breadcrumb = [['label'=>'Reservas','active'=>true,'url'=>'']];
+$esCliente = $esCliente ?? Auth::isCliente();
+$pageTitle  = $esCliente ? 'Mis Reservas' : 'Reservas';
+$breadcrumb = [['label'=>$pageTitle,'active'=>true,'url'=>'']];
 $estadoBadge = [
     'pendiente'  => 'badge-warning',
     'confirmada' => 'badge-success',
@@ -11,14 +12,15 @@ require __DIR__ . '/../layout/header.php';
 ?>
 <div class="page-header">
     <div>
-        <h1 class="page-title"><i class="bi bi-calendar-check-fill me-2"></i>Gestión de Reservas</h1>
-        <p class="page-subtitle">Administra las reservas del restaurante</p>
+        <h1 class="page-title"><i class="bi bi-calendar-check-fill me-2"></i><?= $esCliente ? 'Mis Reservas' : 'Gestión de Reservas' ?></h1>
+        <p class="page-subtitle"><?= $esCliente ? 'Consulta y gestiona tus reservas' : 'Administra las reservas del restaurante' ?></p>
     </div>
     <a href="index.php?module=reservas&action=create" class="btn btn-primary-custom">
         <i class="bi bi-plus-circle-fill me-2"></i>Nueva Reserva
     </a>
 </div>
 
+<?php if (!$esCliente): ?>
 <!-- CALENDARIO Y DISPONIBILIDAD -->
 <div class="row g-4 mb-4">
     <div class="col-lg-7">
@@ -111,11 +113,12 @@ require __DIR__ . '/../layout/header.php';
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <div class="card-modern mb-4">
     <div class="card-modern-body">
         <form method="GET" class="d-flex gap-3 flex-wrap align-items-end">
-            <input type="hidden" name="fecha" value="<?= htmlspecialchars($fechaCal) ?>">
+            <?php if (!$esCliente): ?><input type="hidden" name="fecha" value="<?= htmlspecialchars($fechaCal ?? '') ?>"><?php endif; ?>
             <input type="hidden" name="module" value="reservas">
             <div class="flex-grow-1">
                 <label class="form-label-custom">Buscar</label>
@@ -124,7 +127,7 @@ require __DIR__ . '/../layout/header.php';
                         <i class="bi bi-search text-muted"></i>
                     </span>
                     <input type="text" name="search" class="form-control border-start-0 ps-0"
-                           placeholder="Cliente, mesa o estado..."
+                           placeholder="<?= $esCliente ? 'Mesa o estado...' : 'Cliente, mesa o estado...' ?>"
                            value="<?= htmlspecialchars($search) ?>">
                 </div>
             </div>
@@ -146,7 +149,7 @@ require __DIR__ . '/../layout/header.php';
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Cliente</th>
+                        <?php if (!$esCliente): ?><th>Cliente</th><?php endif; ?>
                         <th>Mesa</th>
                         <th>Inicio</th>
                         <th>Fin</th>
@@ -157,15 +160,17 @@ require __DIR__ . '/../layout/header.php';
                 </thead>
                 <tbody>
                 <?php if (empty($reservas)): ?>
-                    <tr><td colspan="8" class="text-center py-5 text-muted">
+                    <tr><td colspan="<?= $esCliente ? 7 : 8 ?>" class="text-center py-5 text-muted">
                         <i class="bi bi-calendar-x display-6 d-block mb-2"></i>No hay reservas registradas.
                     </td></tr>
                 <?php else: foreach ($reservas as $r): ?>
                     <tr>
                         <td><span class="badge-id"><?= $r['id_reserva'] ?></span></td>
+                        <?php if (!$esCliente): ?>
                         <td>
-                            <div class="fw-600"><?= htmlspecialchars($r['cli_nombre'] . ' ' . $r['cli_apellido']) ?></div>
+                            <div class="fw-600"><?= htmlspecialchars(($r['cli_nombre'] ?? '') . ' ' . ($r['cli_apellido'] ?? '')) ?></div>
                         </td>
+                        <?php endif; ?>
                         <td>
                             <span class="badge bg-primary-subtle text-primary">
                                 Mesa <?= $r['numero_mesa'] ?>
@@ -199,11 +204,13 @@ require __DIR__ . '/../layout/header.php';
                                     <i class="bi bi-x-circle-fill"></i>
                                 </button>
                                 <?php endif; ?>
+                                <?php if (!$esCliente): ?>
                                 <button class="btn-action btn-delete"
                                         onclick="confirmDelete('index.php?module=reservas&action=delete&id=<?= $r['id_reserva'] ?>')"
                                         title="Eliminar">
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
@@ -218,7 +225,7 @@ require __DIR__ . '/../layout/header.php';
             <ul class="pagination-custom">
                 <?php for ($p = 1; $p <= $pages; $p++): ?>
                 <li>
-                    <a href="index.php?module=reservas&page=<?= $p ?>&search=<?= urlencode($search) ?>&fecha=<?= urlencode($fechaCal) ?>"
+                    <a href="index.php?module=reservas&page=<?= $p ?>&search=<?= urlencode($search) ?><?= !$esCliente ? '&fecha='.urlencode($fechaCal ?? '') : '' ?>"
                        class="<?= $page === $p ? 'active' : '' ?>"><?= $p ?></a>
                 </li>
                 <?php endfor; ?>

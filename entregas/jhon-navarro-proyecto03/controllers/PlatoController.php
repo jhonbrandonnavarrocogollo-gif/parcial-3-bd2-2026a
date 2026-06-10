@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Plato.php';
 require_once __DIR__ . '/../models/Categoria.php';
 
@@ -7,6 +8,7 @@ class PlatoController {
     private Categoria $catModel;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->model    = new Plato();
         $this->catModel = new Categoria();
     }

@@ -43,4 +43,8 @@ class Categoria {
     public function count(): int {
         return (int)$this->db->query("SELECT COUNT(*) FROM categoria")->fetchColumn();
     }
+
+    public function getAllSimple(): array {
+        return $this->db->query("SELECT id_categoria, nombre FROM categoria ORDER BY nombre")->fetchAll();
+    }
 }

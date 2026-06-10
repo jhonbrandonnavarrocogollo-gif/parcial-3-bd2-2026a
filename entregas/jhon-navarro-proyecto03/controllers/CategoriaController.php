@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Categoria.php';
 
 class CategoriaController {
     private Categoria $model;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->model = new Categoria();
     }
 

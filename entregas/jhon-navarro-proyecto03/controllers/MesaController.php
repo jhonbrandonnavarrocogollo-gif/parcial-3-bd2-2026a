@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Mesa.php';
 
 class MesaController {
     private Mesa $model;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->model = new Mesa();
     }
 

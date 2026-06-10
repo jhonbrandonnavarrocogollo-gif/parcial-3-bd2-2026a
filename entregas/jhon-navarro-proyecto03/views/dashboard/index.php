@@ -69,6 +69,16 @@ require __DIR__ . '/../layout/header.php';
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-pink">
+            <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+            <div class="stat-body">
+                <div class="stat-value"><?= number_format($stats['mesas_ocupadas'] ?? 0) ?></div>
+                <div class="stat-label">Mesas Ocupadas Hoy</div>
+            </div>
+            <a href="index.php?module=mesas" class="stat-link">Ver mesas <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
         <div class="stat-card stat-orange">
             <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
             <div class="stat-body">
@@ -86,16 +96,6 @@ require __DIR__ . '/../layout/header.php';
                 <div class="stat-label">Ventas Hoy</div>
             </div>
             <a href="index.php?module=reportes" class="stat-link">Ver reportes <i class="bi bi-arrow-right"></i></a>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card stat-pink">
-            <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
-            <div class="stat-body">
-                <div class="stat-value"><?= date('d/m') ?></div>
-                <div class="stat-label">Fecha Actual</div>
-            </div>
-            <a href="index.php?module=reportes" class="stat-link">Reportes <i class="bi bi-arrow-right"></i></a>
         </div>
     </div>
 </div>

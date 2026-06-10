@@ -84,6 +84,44 @@ class Plato {
         return $this->db->query("SELECT p.*, c.nombre AS cat_nombre FROM plato p JOIN categoria c ON c.id_categoria=p.id_categoria WHERE p.disponible=1 ORDER BY p.nombre")->fetchAll();
     }
 
+    public function getDisponibles(int $limit = 12, int $offset = 0, string $search = '', int $catId = 0): array {
+        $where = ['p.disponible = 1'];
+        $params = [];
+        if ($search) {
+            $where[] = "(p.nombre LIKE :s OR p.descripcion LIKE :s)";
+            $params[':s'] = "%$search%";
+        }
+        if ($catId > 0) {
+            $where[] = "p.id_categoria = :cat";
+            $params[':cat'] = $catId;
+        }
+        $sql = "SELECT p.*, c.nombre AS cat_nombre FROM plato p JOIN categoria c ON c.id_categoria=p.id_categoria
+                WHERE " . implode(' AND ', $where) . " ORDER BY c.nombre, p.nombre LIMIT :l OFFSET :o";
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+        $stmt->bindValue(':l', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':o', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countDisponibles(string $search = '', int $catId = 0): int {
+        $where = ['p.disponible = 1'];
+        $params = [];
+        if ($search) {
+            $where[] = "(p.nombre LIKE :s OR p.descripcion LIKE :s)";
+            $params[':s'] = "%$search%";
+        }
+        if ($catId > 0) {
+            $where[] = "p.id_categoria = :cat";
+            $params[':cat'] = $catId;
+        }
+        $sql = "SELECT COUNT(*) FROM plato p WHERE " . implode(' AND ', $where);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn();
+    }
+
     public function getMasVendidos(int $limit = 10): array {
         $stmt = $this->db->prepare(
             "SELECT p.nombre, SUM(d.cantidad) AS total_vendido

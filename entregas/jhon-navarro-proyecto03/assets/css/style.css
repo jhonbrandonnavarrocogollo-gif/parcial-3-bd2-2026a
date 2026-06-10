@@ -689,3 +689,54 @@ body {
     .stat-value { font-size: 1.4rem; }
     .calendar-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ─── AUTH PAGES ──────────────────────────────────────────── */
+.auth-body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #0d1f33 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-wrapper { width: 100%; max-width: 440px; }
+.auth-card-wide { max-width: 640px; margin: 0 auto; }
+
+.auth-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-brand h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 12px 0 4px;
+}
+
+.auth-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, var(--accent), var(--primary-light));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #ffd700;
+}
+
+.auth-demo {
+    background: var(--gray-100);
+    border: 1px dashed var(--gray-300);
+}
+
+.menu-card { transition: transform var(--transition), box-shadow var(--transition); }
+.menu-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.mesa-dispon-card { border-left: 4px solid var(--accent); }
+.proxima-reserva-card { padding: 8px 0; }

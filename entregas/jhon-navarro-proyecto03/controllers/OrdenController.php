@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Orden.php';
 require_once __DIR__ . '/../models/DetalleOrden.php';
 require_once __DIR__ . '/../models/Mesa.php';
@@ -24,17 +25,28 @@ class OrdenController {
     }
 
     public function index(): void {
-        $search  = trim($_GET['search'] ?? '');
-        $page    = max(1, (int)($_GET['page'] ?? 1));
-        $limit   = 10;
-        $offset  = ($page - 1) * $limit;
-        $ordenes = $this->model->getAll($limit, $offset, $search);
-        $total   = $this->model->count($search);
-        $pages   = ceil($total / $limit);
+        $search    = trim($_GET['search'] ?? '');
+        $page      = max(1, (int)($_GET['page'] ?? 1));
+        $limit     = 10;
+        $offset    = ($page - 1) * $limit;
+        $esCliente = Auth::isCliente();
+
+        if ($esCliente) {
+            $idCliente = Auth::idCliente();
+            $ordenes   = $this->model->getByCliente($idCliente, $limit, $offset);
+            $total     = $this->model->countByCliente($idCliente);
+        } else {
+            $ordenes = $this->model->getAll($limit, $offset, $search);
+            $total   = $this->model->count($search);
+        }
+        $pages = ceil($total / $limit);
         require __DIR__ . '/../views/ordenes/index.php';
     }
 
     public function create(): void {
+        if (Auth::isCliente()) {
+            Auth::redirectToDashboard();
+        }
         $errors   = [];
         $data     = [];
         $mesas    = $this->mesaModel->getAllSimple();
@@ -47,7 +59,6 @@ class OrdenController {
             $errors = $this->validateOrden($data);
             if (empty($errors)) {
                 $idOrden = $this->model->create($data);
-                // Guardar detalles
                 $ids      = $data['plato_id']    ?? [];
                 $cants    = $data['cantidad']     ?? [];
                 $precios  = $data['precio_unit']  ?? [];
@@ -71,14 +82,22 @@ class OrdenController {
     }
 
     public function view(): void {
-        $id     = (int)($_GET['id'] ?? 0);
-        $orden  = $this->model->getById($id);
-        if (!$orden) { header('Location: index.php?module=ordenes&action=index'); exit; }
+        $id        = (int)($_GET['id'] ?? 0);
+        $esCliente = Auth::isCliente();
+        $orden     = $this->model->getById($id);
+
+        if (!$orden || ($esCliente && !$this->model->belongsToCliente($id, Auth::idCliente()))) {
+            header('Location: index.php?module=ordenes&action=index');
+            exit;
+        }
         $detalles = $this->detalleModel->getByOrden($id);
         require __DIR__ . '/../views/ordenes/view.php';
     }
 
     public function updateEstado(): void {
+        if (Auth::isCliente()) {
+            Auth::redirectToDashboard();
+        }
         $id     = (int)($_POST['id_orden'] ?? 0);
         $estado = $_POST['estado'] ?? '';
         $valid  = ['recibida','en_cocina','servida','pagada','cancelada'];
@@ -90,13 +109,15 @@ class OrdenController {
     }
 
     public function delete(): void {
+        if (Auth::isCliente()) {
+            Auth::redirectToDashboard();
+        }
         $id = (int)($_GET['id'] ?? 0);
         $this->model->delete($id);
         header('Location: index.php?module=ordenes&action=index&success=deleted');
         exit;
     }
 
-    /** AJAX: retorna precio de un plato */
     public function getPrecio(): void {
         header('Content-Type: application/json');
         $id    = (int)($_GET['id'] ?? 0);

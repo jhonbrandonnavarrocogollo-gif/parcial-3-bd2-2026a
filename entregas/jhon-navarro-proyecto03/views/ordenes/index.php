@@ -1,6 +1,7 @@
 <?php
-$pageTitle  = 'Órdenes';
-$breadcrumb = [['label'=>'Órdenes','active'=>true,'url'=>'']];
+$esCliente = Auth::isCliente();
+$pageTitle  = $esCliente ? 'Mis Órdenes' : 'Órdenes';
+$breadcrumb = [['label'=>$pageTitle,'active'=>true,'url'=>'']];
 $estadoBadge = [
     'recibida'   => 'badge-info',
     'en_cocina'  => 'badge-warning',
@@ -12,14 +13,17 @@ require __DIR__ . '/../layout/header.php';
 ?>
 <div class="page-header">
     <div>
-        <h1 class="page-title"><i class="bi bi-receipt-cutoff me-2"></i>Gestión de Órdenes</h1>
-        <p class="page-subtitle">Administra las órdenes de consumo</p>
+        <h1 class="page-title"><i class="bi bi-receipt-cutoff me-2"></i><?= $esCliente ? 'Mis Órdenes' : 'Gestión de Órdenes' ?></h1>
+        <p class="page-subtitle"><?= $esCliente ? 'Consulta el estado de tus órdenes' : 'Administra las órdenes de consumo' ?></p>
     </div>
+    <?php if (!$esCliente): ?>
     <a href="index.php?module=ordenes&action=create" class="btn btn-primary-custom">
         <i class="bi bi-plus-circle-fill me-2"></i>Nueva Orden
     </a>
+    <?php endif; ?>
 </div>
 
+<?php if (!$esCliente): ?>
 <div class="card-modern mb-4">
     <div class="card-modern-body">
         <form method="GET" class="d-flex gap-3 flex-wrap align-items-end">
@@ -37,6 +41,7 @@ require __DIR__ . '/../layout/header.php';
         </form>
     </div>
 </div>
+<?php endif; ?>
 
 <div class="card-modern">
     <div class="card-modern-header">
@@ -49,7 +54,7 @@ require __DIR__ . '/../layout/header.php';
                     <tr>
                         <th>#</th>
                         <th>Mesa</th>
-                        <th>Mesero</th>
+                        <?php if (!$esCliente): ?><th>Mesero</th><?php endif; ?>
                         <th>Fecha/Hora</th>
                         <th>Total</th>
                         <th>Estado</th>
@@ -58,14 +63,16 @@ require __DIR__ . '/../layout/header.php';
                 </thead>
                 <tbody>
                 <?php if (empty($ordenes)): ?>
-                    <tr><td colspan="7" class="text-center py-5 text-muted">
+                    <tr><td colspan="<?= $esCliente ? 6 : 7 ?>" class="text-center py-5 text-muted">
                         <i class="bi bi-receipt display-6 d-block mb-2"></i>No hay órdenes registradas.
                     </td></tr>
                 <?php else: foreach ($ordenes as $o): ?>
                     <tr>
                         <td><span class="badge-id"><?= $o['id_orden'] ?></span></td>
                         <td><strong>Mesa <?= $o['numero_mesa'] ?></strong></td>
-                        <td><?= $o['mesero_nombre'] ? htmlspecialchars($o['mesero_nombre'].' '.$o['mesero_apellido']) : '<span class="text-muted">—</span>' ?></td>
+                        <?php if (!$esCliente): ?>
+                        <td><?= !empty($o['mesero_nombre']) ? htmlspecialchars($o['mesero_nombre'].' '.($o['mesero_apellido'] ?? '')) : '<span class="text-muted">—</span>' ?></td>
+                        <?php endif; ?>
                         <td>
                             <div><?= date('d/m/Y', strtotime($o['fecha_hora'])) ?></div>
                             <small class="text-muted"><?= date('H:i', strtotime($o['fecha_hora'])) ?></small>
@@ -82,11 +89,13 @@ require __DIR__ . '/../layout/header.php';
                                    class="btn-action btn-view" title="Ver detalle">
                                     <i class="bi bi-eye-fill"></i>
                                 </a>
+                                <?php if (!$esCliente): ?>
                                 <button class="btn-action btn-delete"
                                         onclick="confirmDelete('index.php?module=ordenes&action=delete&id=<?= $o['id_orden'] ?>')"
                                         title="Eliminar">
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

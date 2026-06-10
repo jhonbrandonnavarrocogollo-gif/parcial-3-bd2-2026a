@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS `detalle_orden`;
 DROP TABLE IF EXISTS `orden`;
 DROP TABLE IF EXISTS `reserva`;
 DROP TABLE IF EXISTS `plato`;
+DROP TABLE IF EXISTS `usuario`;
 DROP TABLE IF EXISTS `mesero`;
 DROP TABLE IF EXISTS `mesa`;
 DROP TABLE IF EXISTS `cliente`;
@@ -47,6 +48,23 @@ CREATE TABLE `mesero` (
   `apellido` varchar(80) NOT NULL,
   `telefono` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id_mesero`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `usuario` (
+  `id_usuario` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(120) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `rol` enum('cliente','mesero') NOT NULL,
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  `id_cliente` int(11) DEFAULT NULL,
+  `id_mesero` int(11) DEFAULT NULL,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `uk_usuario_cliente` (`id_cliente`),
+  UNIQUE KEY `uk_usuario_mesero` (`id_mesero`),
+  CONSTRAINT `fk_usuario_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_usuario_mesero` FOREIGN KEY (`id_mesero`) REFERENCES `mesero` (`id_mesero`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Tablas con una dependencia
@@ -142,6 +160,12 @@ INSERT INTO `mesero` (`nombre`, `apellido`, `telefono`) VALUES
 ('Pedro', 'Ramírez', '3006667788'),
 ('Laura', 'Castro', '3107778899'),
 ('Diego', 'Vargas', '3208889900');
+
+-- Contraseña demo para meseros: 1234
+INSERT INTO `usuario` (`email`, `password`, `rol`, `estado`, `id_mesero`) VALUES
+('pedro.ramirez@restaurante.com', '$2y$10$3c5EopfkCvSe3NfAjXZBVe9AjUR50jg5yYzrBW17e6cPNbnwK9RHu', 'mesero', 'activo', 1),
+('laura.castro@restaurante.com', '$2y$10$3c5EopfkCvSe3NfAjXZBVe9AjUR50jg5yYzrBW17e6cPNbnwK9RHu', 'mesero', 'activo', 2),
+('diego.vargas@restaurante.com', '$2y$10$3c5EopfkCvSe3NfAjXZBVe9AjUR50jg5yYzrBW17e6cPNbnwK9RHu', 'mesero', 'activo', 3);
 
 INSERT INTO `plato` (`nombre`, `descripcion`, `precio`, `disponible`, `id_categoria`) VALUES
 ('Ensalada César', 'Lechuga romana, crutones, parmesano y aderezo César', 18500.00, 1, 1),

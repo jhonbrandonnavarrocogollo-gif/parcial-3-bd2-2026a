@@ -105,4 +105,52 @@ class Orden {
         $stmt->execute([':d' => $dias]);
         return $stmt->fetchAll();
     }
+
+    public function getByCliente(int $idCliente, int $limit = 10, int $offset = 0): array {
+        $stmt = $this->db->prepare(
+            "SELECT o.*, m.numero_mesa, r.fecha_hora_inicio AS reserva_inicio
+             FROM orden o
+             JOIN mesa m ON m.id_mesa = o.id_mesa
+             JOIN reserva r ON r.id_reserva = o.id_reserva
+             WHERE r.id_cliente = :cliente
+             ORDER BY o.fecha_hora DESC LIMIT :l OFFSET :o"
+        );
+        $stmt->bindValue(':cliente', $idCliente, PDO::PARAM_INT);
+        $stmt->bindValue(':l', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':o', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countByCliente(int $idCliente): int {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM orden o
+             LEFT JOIN reserva r ON r.id_reserva = o.id_reserva
+             WHERE r.id_cliente = :cliente"
+        );
+        $stmt->execute([':cliente' => $idCliente]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getActivasByCliente(int $idCliente): array {
+        $stmt = $this->db->prepare(
+            "SELECT o.*, m.numero_mesa FROM orden o
+             JOIN reserva r ON r.id_reserva = o.id_reserva
+             JOIN mesa m ON m.id_mesa = o.id_mesa
+             WHERE r.id_cliente = :cliente AND o.estado NOT IN ('pagada','cancelada')
+             ORDER BY o.fecha_hora DESC"
+        );
+        $stmt->execute([':cliente' => $idCliente]);
+        return $stmt->fetchAll();
+    }
+
+    public function belongsToCliente(int $idOrden, int $idCliente): bool {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM orden o
+             JOIN reserva r ON r.id_reserva = o.id_reserva
+             WHERE o.id_orden = :id AND r.id_cliente = :cliente"
+        );
+        $stmt->execute([':id' => $idOrden, ':cliente' => $idCliente]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
 }

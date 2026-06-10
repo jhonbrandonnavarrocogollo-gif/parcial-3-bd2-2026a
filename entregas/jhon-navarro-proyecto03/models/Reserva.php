@@ -178,4 +178,74 @@ class Reserva {
         $stmt->execute([':fecha' => $fecha]);
         return $stmt->fetchAll();
     }
+
+    public function getByCliente(int $idCliente, int $limit = 10, int $offset = 0, string $search = ''): array {
+        $sql = "SELECT r.*, m.numero_mesa, m.ubicacion
+                FROM reserva r
+                JOIN mesa m ON m.id_mesa = r.id_mesa
+                WHERE r.id_cliente = :cliente";
+        if ($search) {
+            $sql .= " AND (m.numero_mesa LIKE :s OR r.estado LIKE :s OR r.notas LIKE :s)";
+        }
+        $sql .= " ORDER BY r.fecha_hora_inicio DESC LIMIT :l OFFSET :o";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':cliente', $idCliente, PDO::PARAM_INT);
+        if ($search) $stmt->bindValue(':s', "%$search%");
+        $stmt->bindValue(':l', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':o', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function countByCliente(int $idCliente, string $search = ''): int {
+        if ($search) {
+            $stmt = $this->db->prepare(
+                "SELECT COUNT(*) FROM reserva r JOIN mesa m ON m.id_mesa=r.id_mesa
+                 WHERE r.id_cliente=:cliente AND (m.numero_mesa LIKE :s OR r.estado LIKE :s OR r.notas LIKE :s)"
+            );
+            $stmt->execute([':cliente' => $idCliente, ':s' => "%$search%"]);
+        } else {
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM reserva WHERE id_cliente=:cliente");
+            $stmt->execute([':cliente' => $idCliente]);
+        }
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getProximaByCliente(int $idCliente): array|false {
+        $stmt = $this->db->prepare(
+            "SELECT r.*, m.numero_mesa, m.ubicacion
+             FROM reserva r JOIN mesa m ON m.id_mesa=r.id_mesa
+             WHERE r.id_cliente=:cliente AND r.fecha_hora_inicio >= NOW()
+               AND r.estado NOT IN ('cancelada','completada')
+             ORDER BY r.fecha_hora_inicio ASC LIMIT 1"
+        );
+        $stmt->execute([':cliente' => $idCliente]);
+        return $stmt->fetch();
+    }
+
+    public function getHistorialByCliente(int $idCliente, int $limit = 5): array {
+        $stmt = $this->db->prepare(
+            "SELECT r.*, m.numero_mesa FROM reserva r JOIN mesa m ON m.id_mesa=r.id_mesa
+             WHERE r.id_cliente=:cliente ORDER BY r.fecha_hora_inicio DESC LIMIT :l"
+        );
+        $stmt->bindValue(':cliente', $idCliente, PDO::PARAM_INT);
+        $stmt->bindValue(':l', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function belongsToCliente(int $idReserva, int $idCliente): bool {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) FROM reserva WHERE id_reserva=:id AND id_cliente=:cliente"
+        );
+        $stmt->execute([':id' => $idReserva, ':cliente' => $idCliente]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
+    public function countMesasOcupadas(): int {
+        return (int)$this->db->query(
+            "SELECT COUNT(DISTINCT id_mesa) FROM reserva
+             WHERE DATE(fecha_hora_inicio)=CURDATE() AND estado NOT IN ('cancelada','completada')"
+        )->fetchColumn();
+    }
 }

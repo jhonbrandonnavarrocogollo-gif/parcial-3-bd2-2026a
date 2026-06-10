@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Reserva.php';
 require_once __DIR__ . '/../models/Orden.php';
 require_once __DIR__ . '/../models/Plato.php';
@@ -8,6 +9,7 @@ class ReporteController {
     private PDO $db;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->db = Database::getConnection();
     }
 

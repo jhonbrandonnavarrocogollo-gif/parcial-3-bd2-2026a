@@ -40,7 +40,7 @@ require __DIR__ . '/../layout/header.php';
             </div>
         </div>
 
-        <!-- Cambiar estado -->
+        <?php if (!Auth::isCliente()): ?>
         <div class="card-modern">
             <div class="card-modern-header"><h6><i class="bi bi-arrow-repeat me-2"></i>Cambiar Estado</h6></div>
             <div class="card-modern-body">
@@ -59,6 +59,7 @@ require __DIR__ . '/../layout/header.php';
                 </form>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <!-- Detalles -->

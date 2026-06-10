@@ -1,7 +1,8 @@
 <?php
+$esCliente  = Auth::isCliente();
 $isEdit     = isset($id) && $id > 0;
 $pageTitle  = $isEdit ? 'Editar Reserva' : 'Nueva Reserva';
-$excludeId  = $isEdit ? $id : 0;
+$excludeId  = $isEdit ? ($id ?? 0) : 0;
 $breadcrumb = [
     ['label'=>'Reservas','active'=>false,'url'=>'index.php?module=reservas'],
     ['label'=>$pageTitle,'active'=>true,'url'=>''],
@@ -33,6 +34,9 @@ require __DIR__ . '/../layout/header.php';
             <div class="card-modern-body">
                 <form method="POST" id="formReserva" novalidate>
                     <div class="row g-4">
+                        <?php if ($esCliente): ?>
+                        <input type="hidden" name="id_cliente" value="<?= Auth::idCliente() ?>">
+                        <?php else: ?>
                         <div class="col-md-6">
                             <label class="form-label-custom">Cliente <span class="text-danger">*</span></label>
                             <select name="id_cliente" class="form-select-custom <?= !empty($errors['id_cliente']) ? 'is-invalid' : '' ?>" required>
@@ -48,7 +52,8 @@ require __DIR__ . '/../layout/header.php';
                             <div class="invalid-feedback d-block"><?= $errors['id_cliente'] ?></div>
                             <?php endif; ?>
                         </div>
-                        <div class="col-md-6">
+                        <?php endif; ?>
+                        <div class="<?= $esCliente ? 'col-md-12' : 'col-md-6' ?>">
                             <label class="form-label-custom">Mesa <span class="text-danger">*</span></label>
                             <select name="id_mesa" id="id_mesa" class="form-select-custom <?= !empty($errors['id_mesa']) ? 'is-invalid' : '' ?>" required>
                                 <option value="">— Seleccionar mesa —</option>
@@ -90,6 +95,9 @@ require __DIR__ . '/../layout/header.php';
                             <div class="invalid-feedback d-block"><?= $errors['num_personas'] ?></div>
                             <?php endif; ?>
                         </div>
+                        <?php if ($esCliente): ?>
+                        <input type="hidden" name="estado" value="<?= htmlspecialchars($data['estado'] ?? 'pendiente') ?>">
+                        <?php else: ?>
                         <div class="col-md-4">
                             <label class="form-label-custom">Estado</label>
                             <select name="estado" class="form-select-custom">
@@ -100,6 +108,7 @@ require __DIR__ . '/../layout/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
+                        <?php endif; ?>
                         <div class="col-12">
                             <label class="form-label-custom">Notas</label>
                             <textarea name="notas" class="form-control-custom" rows="2"

@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Cliente.php';
 
 class ClienteController {
     private Cliente $model;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->model = new Cliente();
     }
 

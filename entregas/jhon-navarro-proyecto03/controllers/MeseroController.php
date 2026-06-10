@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Mesero.php';
 
 class MeseroController {
     private Mesero $model;
 
     public function __construct() {
+        Auth::requireRole('mesero');
         $this->model = new Mesero();
     }
 
